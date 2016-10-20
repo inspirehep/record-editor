@@ -27,11 +27,15 @@ import 'rxjs/add/operator/map';
 
 @Injectable()
 export class RecordService {
+  private type: string;
+  private recid: string;
 
   constructor(private http: Http) { }
 
   fetchRecord(type: string, recid: string): Observable<{}> {
     // TODO: change base url!
+    this.type = type;
+    this.recid = recid;
     return this.http.get(`http://localhost:5000/api/${type}/${recid}/db`)
       .map(res => res.json().metadata);
   }
@@ -41,4 +45,12 @@ export class RecordService {
       .map(res => res.json());
   }
 
+  saveRecord(record: Object): Observable<Object> {
+    let postData = {
+      'pid_type': this.type,
+      'recid': this.recid,
+      'json_data': record
+    };
+    return this.http.post('http://localhost:5000/editor/save', postData).map(res => res.json());
+  }
 }

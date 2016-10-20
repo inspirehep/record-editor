@@ -33,6 +33,7 @@ import 'rxjs/add/operator/mergeMap';
 export class EditorContainerComponent implements OnInit {
   private record: Object = {};
   private schema: Object = {};
+  private errorMap: Object = {};
 
   constructor(private route: ActivatedRoute, private recordService: RecordService) { }
 
@@ -51,6 +52,11 @@ export class EditorContainerComponent implements OnInit {
     }
 
   onRecordChange(record: Object) {
-        this.record = record;
-      }
+    this.record = record;
+  }
+
+  // TO-DO: Success messages are not being handled
+  onClickSave(event: Object) {
+    this.recordService.saveRecord(this.record).subscribe(resp => this.errorMap = resp['errorMap']);
+  }
 }

@@ -1,5 +1,11 @@
+<!--Set it on top just because it get's hidden by the footer on bottom. FIX it later -->
 <div class="row">
   <div class="col-md-12">
-    <json-editor [record]="record" (onRecordChange)="onRecordChange($event)" [schema]="schema"></json-editor>
+  <button type="submit" (click)="onClickSave($event)">Save</button>
   </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <json-editor [record]="record" (onRecordChange)="onRecordChange($event)" [schema]="schema" [errorMap]="errorMap"></json-editor>
+    </div>
 </div>
