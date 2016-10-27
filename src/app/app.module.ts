@@ -7,16 +7,19 @@ import { JsonEditorModule } from 'ng2-json-editor/ng2-json-editor';
 
 import { AppComponent } from './app.component';
 import { EditorContainerComponent } from './editor-container';
+import { EditorToolbarComponent, EditorToolbarSaveComponent } from './editor-toolbar';
 
 import { routing, appRoutingProviders, } from './app.routing';
 
 import { SHARED_PIPES, SHARED_SERVICES } from './shared';
-import { APP_CONFIG, INSPIRE_EDITOR_CONFIG } from './app.config';
+import { APP_CONFIG, INSPIRE_EDITOR_CONFIG, APP_URL_CONFIG, BASE_URL_CONFIG } from './app.config';
 
 @NgModule({
   declarations: [
     AppComponent,
+    EditorToolbarComponent,
     EditorContainerComponent,
+    EditorToolbarSaveComponent,
     ...SHARED_PIPES
   ],
   imports: [
@@ -28,6 +31,7 @@ import { APP_CONFIG, INSPIRE_EDITOR_CONFIG } from './app.config';
   providers: [
     {provide: APP_BASE_HREF, useValue: '/editor'},
     {provide: APP_CONFIG, useValue: INSPIRE_EDITOR_CONFIG },
+    {provide: APP_URL_CONFIG, useValue: BASE_URL_CONFIG },
     ...appRoutingProviders,
     ...SHARED_SERVICES
   ],

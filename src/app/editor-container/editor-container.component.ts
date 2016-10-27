@@ -56,6 +56,6 @@ export class EditorContainerComponent implements OnInit {
     }
 
   onRecordChange(record: Object) {
-        this.record = record;
-      }
+    this.record = record;
+  }
 }
