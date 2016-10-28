@@ -120,14 +120,10 @@ export const INSPIRE_EDITOR_CONFIG: AppConfig = {
     'urls.items.properties.value': {
       'x_editor_priority': 1
     }
+},
+base_url : BASE_URL.base_url,
+api_url : function(pid_type: string , pid_value: string): string {
+  return `${this.base_url}/api/${pid_type}/${pid_value}/db`;
 }
 };
 
-export let APP_URL_CONFIG = new OpaqueToken('app.config');
-
-export const BASE_URL_CONFIG: UrlConfig = {
-  base_url : BASE_URL.base_url,
-  api_url : function(pid_type: string , pid_value: string): string {
-    return `${this.base_url}/api/${pid_type}/${pid_value}/db`;
-  }
-};

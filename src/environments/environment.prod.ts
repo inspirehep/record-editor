@@ -3,5 +3,5 @@ export const environment = {
 };
 
 export const BASE_URL = {
-  base_url : '',
+  base_url: '',
 };

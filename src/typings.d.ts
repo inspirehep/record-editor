@@ -7,9 +7,6 @@ declare var System: any;
 interface AppConfig {
   schemaOptions?: Object;
   previews?: Array<Object>;
-}
-
-interface UrlConfig {
   readonly base_url: string;
   api_url: (pid_type: string, pid_value: string) => string;
 }
