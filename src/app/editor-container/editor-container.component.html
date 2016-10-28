@@ -1,2 +1,7 @@
-<json-editor *ngIf="record && schema" [record]="record" [schema]="schema" [config]="config" (onRecordChange)="onRecordChange($event)">
-</json-editor>
+<div class="row">
+    <re-editor-toolbar [record]="record"></re-editor-toolbar>
+</div>
+<div class="row">    
+    <json-editor *ngIf="record && schema" [record]="record" [schema]="schema" [config]="config" (onRecordChange)="onRecordChange($event)">
+    </json-editor>
+</div>

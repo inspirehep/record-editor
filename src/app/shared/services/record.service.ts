@@ -20,19 +20,26 @@
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
 */
 
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Http } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
+import { APP_CONFIG } from '../../app.config';
 
 @Injectable()
 export class RecordService {
+  private type: string;
+  private recid: string;
+  private config: AppConfig;
 
-  constructor(private http: Http) { }
+  constructor(private http: Http, @Inject(APP_CONFIG) config: AppConfig) {
+    this.config = config;
+  }
 
   fetchRecord(type: string, recid: string): Observable<{}> {
-    // TODO: change base url!
-    return this.http.get(`http://localhost:5000/api/${type}/${recid}/db`)
+    this.type = type;
+    this.recid = recid;
+    return this.http.get(this.config.api_url(this.type, this.recid))
       .map(res => res.json().metadata);
   }
 
@@ -41,4 +48,8 @@ export class RecordService {
       .map(res => res.json());
   }
 
+  saveRecord(record: Object): Observable<Object> {
+    // TO-DO: Check the fields of the record. After calling recordfixer service some required fields are deleted.
+    return this.http.put(this.config.api_url(this.type, this.recid), record).map(res => res.json());
+  }
 }

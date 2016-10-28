@@ -1,0 +1,19 @@
+.list-group-item {
+	display: inline-block;
+    background-color: #1D2D3D;
+    color: #FFF;
+}
+.list-group-item {
+	margin-bottom: 5px;
+	margin-left:-4px;
+	margin-right: 0;
+}
+.list-group-item:first-child {
+	border-top-right-radius:0;
+	border-bottom-left-radius:4px;
+    float: left;
+}
+.list-group-item:last-child {
+	border-top-right-radius:4px;
+	border-bottom-left-radius:0;
+}
