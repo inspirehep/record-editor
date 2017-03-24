@@ -22,21 +22,22 @@
 
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
+
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
+
 import { AppConfigService } from '../../app-config.service';
+import { LocalStorageService } from 'ng2-webstorage';
 
 @Injectable()
 export class ApiService {
-  // pid_type and pid_value (see invenio-pidstore)
-  private pidType: string;
-  private pidValue: string;
-  // workflow object id (see invenio-workflows)
-  private objectId: string;
 
-  constructor(private http: Http, private config: AppConfigService) {
-  }
+  private dataUrl: string;
+
+  constructor(private http: Http,
+    private config: AppConfigService,
+    private localStorageService: LocalStorageService) { }
 
   fetchUrl(url: string): Promise<Object> {
     return this.http.get(url)
@@ -44,26 +45,32 @@ export class ApiService {
       .toPromise();
   }
 
+  private fetchFromUrlOrLocalStorage(url: string): Promise<Object> {
+    this.dataUrl = url;
+    let localCopy = this.localStorageService.retrieve(url);
+    if (localCopy && confirm('There is a local copy for this record, do you want to recover?')) {
+      return Promise.resolve(localCopy);
+    } else {
+      return this.fetchUrl(url);
+    }
+  }
+
   fetchRecord(pidType: string, pidValue: string): Promise<Object> {
-    this.pidType = pidType;
-    this.pidValue = pidValue;
-    return this.fetchUrl(this.config.apiUrl(pidType, pidValue));
+    return this.fetchFromUrlOrLocalStorage(this.config.apiUrl(pidType, pidValue));
   }
 
   fetchWorkflowObject(objectId: string): Promise<Object> {
-    this.objectId = objectId;
-    return this.fetchUrl(this.config.holdingPenApiUrl(this.objectId));
+    return this.fetchFromUrlOrLocalStorage(this.config.holdingPenApiUrl(objectId));
   }
 
-  saveRecord(record: Object): Observable<Object> {
+  saveData(data: Object): Observable<Object> {
+    this.localStorageService.clear(this.dataUrl);
     return this.http
-      .put(this.config.apiUrl(this.pidType, this.pidValue), record)
+      .put(this.dataUrl, data)
       .map(res => res.json());
   }
 
-  saveWorkflowObject(record: Object): Observable<Object> {
-    return this.http
-      .put(this.config.holdingPenApiUrl(this.objectId), record)
-      .map(res => res.json());
+  saveDataLocally(data: Object) {
+    this.localStorageService.store(this.dataUrl, data);
   }
 }
