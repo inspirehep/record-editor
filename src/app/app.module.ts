@@ -4,6 +4,7 @@ import { APP_BASE_HREF } from '@angular/common';
 import { HttpModule } from '@angular/http';
 
 import { JsonEditorModule } from 'ng2-json-editor';
+import { Ng2Webstorage } from 'ng2-webstorage';
 
 import { AppComponent } from './app.component';
 import { EditorHoldingPenComponent } from './editor-holdingpen';
@@ -31,7 +32,8 @@ import { AppConfigService } from './app-config.service';
     BrowserModule,
     HttpModule,
     routing,
-    JsonEditorModule
+    JsonEditorModule,
+    Ng2Webstorage
   ],
   providers: [
     { provide: APP_BASE_HREF, useValue: '/editor' },

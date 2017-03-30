@@ -23,9 +23,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiService } from '../shared/services';
 import 'rxjs/add/operator/mergeMap';
 
+import { ApiService } from '../shared/services';
 import { AppConfigService } from '../app-config.service';
 
 @Component({
@@ -49,12 +49,17 @@ export class EditorHoldingPenComponent implements OnInit {
         this.apiService.fetchWorkflowObject(params['objectid'])
           .then(workflowObject => {
             this.workflowObject = workflowObject;
+            window.onbeforeunload = () => {
+              this.apiService.saveDataLocally(this.workflowObject);
+            };
             this.config = this.appConfig.getConfigForRecord(this.workflowObject['metadata']);
             return this.apiService.fetchUrl(this.workflowObject['metadata']['$schema']);
           }).then(schema => {
             this.schema = schema;
+
           }).catch(error => console.error(error));
       });
+
   }
 
   onRecordChange(record: Object) {

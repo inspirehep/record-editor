@@ -54,7 +54,7 @@ export class EditorToolbarSaveComponent {
           bodyHtml: this.domSanitizer.bypassSecurityTrustHtml('<iframe id="iframe-preview"></iframe>'),
           type: 'confirm',
           onConfirm: () => {
-            this.apiService.saveRecord(this.record).subscribe({
+            this.apiService.saveData(this.record).subscribe({
               next: () => {
                 this.route.params
                   .subscribe(params => {

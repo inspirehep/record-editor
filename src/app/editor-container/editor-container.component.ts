@@ -24,7 +24,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiService } from '../shared/services';
-
 import { AppConfigService } from '../app-config.service';
 
 @Component({
@@ -47,7 +46,11 @@ export class EditorContainerComponent implements OnInit {
       .subscribe(params => {
         this.apiService.fetchRecord(params['type'], params['recid'])
           .then(record => {
-            this.record = record['metadata'];
+            // load record.metadata or record (if it is from local storage)
+            this.record = record['metadata'] || record;
+            window.onbeforeunload = () => {
+              this.apiService.saveDataLocally(this.record);
+            };
             this.config = this.appConfig.getConfigForRecord(this.record);
             return this.apiService.fetchUrl(this.record['$schema']);
           }).then(schema => {

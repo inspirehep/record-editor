@@ -34,7 +34,7 @@ export class EditorHoldingPenToolbarSaveComponent {
   constructor(private apiService: ApiService) { }
 
   onClickSave(event: Object) {
-    this.apiService.saveWorkflowObject(this.workflowObject)
+    this.apiService.saveData(this.workflowObject)
       .subscribe(resp => {
         window.location.href = `/holdingpen/${this.workflowObject.id}`;
       });
