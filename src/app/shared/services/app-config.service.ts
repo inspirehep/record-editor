@@ -248,7 +248,7 @@ export class AppConfigService {
                 return value.getIn(['reference', 'label']) === expression;
               },
               findMultiple: this.commonConfigsService.fullTextSearch,
-              itemsPerPage: 20,
+              itemsPerPage: 50,
               maxVisiblePageCount: 5
             },
             viewTemplateConfig: {
