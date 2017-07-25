@@ -53,6 +53,10 @@ export class EditorToolbarSaveComponent {
 
   onClickSave(event: Object) {
     this.recordCleanupService.cleanup(this.record);
+    this.previewAndSave();
+  }
+
+  previewAndSave() {
     this.http.post(`${environment.baseUrl}/editor/preview`, this.record)
       .subscribe((res: Response) => {
         this.modalService.displayModal({
@@ -60,17 +64,7 @@ export class EditorToolbarSaveComponent {
           bodyHtml: this.domSanitizer.bypassSecurityTrustHtml('<iframe id="iframe-preview"></iframe>'),
           type: 'confirm',
           onConfirm: () => {
-            this.apiService.saveRecord(this.record).subscribe({
-              next: () => {
-                this.route.params
-                  .subscribe(params => {
-                    window.location.href = `/${params['type']}/${params['recid']}`;
-                });
-              },
-              error: (error) => {
-                console.warn(error.json());
-              },
-          });
+            this.onPreviewConfirm()
           },
           onShow: () => {
             let el = document.getElementById('iframe-preview') as HTMLIFrameElement;
@@ -78,8 +72,49 @@ export class EditorToolbarSaveComponent {
             doc.open();
             doc.write(res.text());
             doc.close();
-         }
+          }
         });
       });
+  }
+
+  onPreviewConfirm(record = undefined, revisionId = undefined) {
+    let _record = record || this.record;
+    this.apiService.saveRecord(_record, revisionId).subscribe({
+      next: () => {
+        this.onSaveRecordSuccess();
+      },
+      error: (error: Response) => {
+        this.onSaveRecordError(error);
+      }
+    });
+  }
+
+  onSaveRecordSuccess() {
+    this.route.params
+      .subscribe(params => {
+        window.location.href = `/${params['type']}/${params['recid']}`;
+      });
+  }
+
+  onSaveRecordError(error) {
+    if (error.status === 412) {
+      // The version of the record on disk has changed
+      // Call API to merge versions
+      this.apiService.rebaseRecord(this.record).subscribe({
+        next: (response: Response) => {
+          let json = response.json();
+          if (json.conflicts) {
+            console.warn('Conflicts found while merging.', json.conflicts);
+          } else {
+            this.onPreviewConfirm(json.merged_json, json.revision_id);
+          }
+        },
+        error: (error) => {
+          console.warn(error.json());
+        }
+      });
+    } else {
+      console.warn(error.json());
+    }
   }
 }
