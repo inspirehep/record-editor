@@ -21,7 +21,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import { Http } from '@angular/http';
+import { Headers, Http, RequestOptions } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
@@ -32,6 +32,7 @@ export class ApiService {
   // pid_type and pid_value (see invenio-pidstore)
   private pidType: string;
   private pidValue: string;
+  private revisionId: string;
   // workflow object id (see invenio-workflows)
   private objectId: string;
 
@@ -47,7 +48,11 @@ export class ApiService {
   fetchRecord(pidType: string, pidValue: string): Promise<Object> {
     this.pidType = pidType;
     this.pidValue = pidValue;
-    return this.fetchUrl(this.config.apiUrl(pidType, pidValue));
+    return this.http.get(this.config.apiUrl(pidType, pidValue))
+      .map(res => {
+        this.revisionId = res.headers.get('Etag');
+        return res.json();
+      }).toPromise();
   }
 
   fetchWorkflowObject(objectId: string): Promise<Object> {
@@ -55,10 +60,20 @@ export class ApiService {
     return this.fetchUrl(this.config.holdingPenApiUrl(this.objectId));
   }
 
-  saveRecord(record: Object): Observable<Object> {
+  saveRecord(record: Object, revisionId = undefined): Observable<Object> {
+    let last_revision = revisionId || this.revisionId;
+    let headers = new Headers({
+      'If-Match': last_revision
+    });
+    let options = new RequestOptions({ headers: headers });
     return this.http
-      .put(this.config.apiUrl(this.pidType, this.pidValue), record)
+      .put(this.config.apiUrl(this.pidType, this.pidValue), record, options)
       .map(res => res.json());
+  }
+
+  rebaseRecord(record: Object): Observable<Object> {
+    return this.http
+      .post(`http://localhost:5000/api/editor/${this.pidType}/${this.pidValue}/rebase`, record);
   }
 
   saveWorkflowObject(record: Object): Observable<Object> {

@@ -44,8 +44,8 @@ export class EditorContainerComponent implements OnInit {
     this.route.params
       .subscribe(params => {
         this.apiService.fetchRecord(params['type'], params['recid'])
-          .then(record => {
-            this.record = record['metadata'];
+          .then(json => {
+            this.record = json['metadata'];
             this.config = this.appConfig.getConfigForRecord(this.record);
             return this.apiService.fetchUrl(this.record['$schema']);
           }).then(schema => {
