@@ -38,6 +38,7 @@ export class EditorContainerComponent implements OnInit {
   record: Object;
   schema: Object;
   config: Object;
+  revision: Object;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
     private route: ActivatedRoute,
@@ -75,5 +76,16 @@ export class EditorContainerComponent implements OnInit {
         this.config = Object.assign({}, config);
         this.changeDetectorRef.markForCheck();
       });
+  }
+
+  onRevisionRevert() {
+    this.record = this.revision;
+    this.revision = undefined;
+    this.changeDetectorRef.markForCheck();
+  }
+
+  onRevisionChange(revision: Object) {
+    this.revision = revision;
+    this.changeDetectorRef.markForCheck();
   }
 }

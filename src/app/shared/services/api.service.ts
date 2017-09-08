@@ -28,7 +28,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
 
 import { AppConfigService } from './app-config.service';
-import { Ticket } from '../interfaces';
+import { Ticket, RecordRevision } from '../interfaces';
 
 
 @Injectable()
@@ -107,4 +107,26 @@ export class ApiService {
       .map(res => res.json())
       .map((queues: Array<{ name: string }>) => queues.map(queue => queue.name));
   }
+
+  fetchRevisions(): Promise<Array<RecordRevision>> {
+    return this.http
+      .get(`${this.editorRecordApiUrl}/revisions`)
+      .map(res => res.json())
+      .toPromise();
+  }
+
+  fetchRevisionData(transactionId: number, recUUID: string): Promise<Object> {
+    return this.http
+      .get(`${this.editorRecordApiUrl}/revision/${recUUID}/${transactionId}`)
+      .map(res => res.json())
+      .toPromise();
+  }
+
+  revertToRevision(revisionId: number): Promise<void> {
+    return this.http
+      .put(`${this.editorRecordApiUrl}/revisions/revert`, { revision_id: revisionId })
+      .map(res => res.json())
+      .toPromise();
+  }
+
 }
