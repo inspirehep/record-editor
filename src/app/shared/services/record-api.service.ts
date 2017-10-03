@@ -28,23 +28,18 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
 
 import { AppConfigService } from './app-config.service';
-import { Ticket } from '../interfaces';
+import { CommonApiService } from './common-api.service';
+import { Ticket, RecordRevision } from '../interfaces';
 
 
 @Injectable()
-export class ApiService {
+export class RecordApiService extends CommonApiService {
   // urls for currently edited record, iclude pidType and pidValue
   private recordApiUrl: string;
   private editorRecordApiUrl: string;
-  // url for currently edited holdingpen object, includes objectId
-  private holdingpenObjectApiUrl: string;
 
-  constructor(private http: Http, private config: AppConfigService) { }
-
-  fetchUrl(url: string): Promise<Object> {
-    return this.http.get(url)
-      .map(res => res.json())
-      .toPromise();
+  constructor(protected http: Http, protected config: AppConfigService) {
+    super(http, config);
   }
 
   checkEditorPermission(pidType: string, pidValue: string): Promise<any> {
@@ -60,20 +55,9 @@ export class ApiService {
     return this.fetchUrl(this.recordApiUrl);
   }
 
-  fetchWorkflowObject(objectId: string): Promise<Object> {
-    this.holdingpenObjectApiUrl = `${this.config.holdingpenApiUrl}/${objectId}`;
-    return this.fetchUrl(this.holdingpenObjectApiUrl);
-  }
-
   saveRecord(record: Object): Observable<Object> {
     return this.http
       .put(this.recordApiUrl, record)
-      .map(res => res.json());
-  }
-
-  saveWorkflowObject(record: Object): Observable<Object> {
-    return this.http
-      .put(this.holdingpenObjectApiUrl, record)
       .map(res => res.json());
   }
 
@@ -107,4 +91,26 @@ export class ApiService {
       .map(res => res.json())
       .map((queues: Array<{ name: string }>) => queues.map(queue => queue.name));
   }
+
+  fetchRevisions(): Promise<Array<RecordRevision>> {
+    return this.http
+      .get(`${this.editorRecordApiUrl}/revisions`)
+      .map(res => res.json())
+      .toPromise();
+  }
+
+  fetchRevisionData(transactionId: number, recUUID: string): Promise<Object> {
+    return this.http
+      .get(`${this.editorRecordApiUrl}/revision/${recUUID}/${transactionId}`)
+      .map(res => res.json())
+      .toPromise();
+  }
+
+  revertToRevision(revisionId: number): Promise<void> {
+    return this.http
+      .put(`${this.editorRecordApiUrl}/revisions/revert`, { revision_id: revisionId })
+      .map(res => res.json())
+      .toPromise();
+  }
+
 }

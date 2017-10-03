@@ -25,7 +25,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ToastrService } from 'ngx-toastr';
 
-import { ApiService, AppConfigService } from '../shared/services';
+import { RecordApiService, AppConfigService } from '../shared/services';
 
 @Component({
   templateUrl: './editor-container.component.html',
@@ -38,10 +38,11 @@ export class EditorContainerComponent implements OnInit {
   record: Object;
   schema: Object;
   config: Object;
+  revision: Object;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
     private route: ActivatedRoute,
-    private apiService: ApiService,
+    private apiService: RecordApiService,
     private appConfigService: AppConfigService,
     private toastrService: ToastrService) { }
 
@@ -75,5 +76,16 @@ export class EditorContainerComponent implements OnInit {
         this.config = Object.assign({}, config);
         this.changeDetectorRef.markForCheck();
       });
+  }
+
+  onRevisionRevert() {
+    this.record = this.revision;
+    this.revision = undefined;
+    this.changeDetectorRef.markForCheck();
+  }
+
+  onRevisionChange(revision: Object) {
+    this.revision = revision;
+    this.changeDetectorRef.markForCheck();
   }
 }
