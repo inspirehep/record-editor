@@ -22,7 +22,7 @@
 
 import { Component, OnInit, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 
-import { ApiService } from '../shared/services';
+import { RecordApiService } from '../shared/services';
 import { RecordRevision } from '../shared/interfaces';
 
 
@@ -42,7 +42,7 @@ export class RecordHistoryComponent implements OnInit {
   revisions: Array<RecordRevision>;
   selectedRevision: RecordRevision;
 
-  constructor(private apiService: ApiService) {
+  constructor(private apiService: RecordApiService) {
 
   }
 

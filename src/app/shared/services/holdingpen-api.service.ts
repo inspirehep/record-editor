@@ -28,20 +28,29 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
 
 import { AppConfigService } from './app-config.service';
+import { CommonApiService } from './common-api.service';
+import { Ticket, RecordRevision } from '../interfaces';
 
 
 @Injectable()
-export class RefExtractApiService {
+export class HoldingpenApiService extends CommonApiService {
 
-  constructor(private http: Http,
-    private config: AppConfigService) { }
+  // url for currently edited holdingpen object, includes objectId
+  private holdingpenObjectApiUrl: string;
 
-  refExtract(source: string, sourceType: string): Promise<Array<Object>> {
-    let body = { [sourceType]: source };
-    return this.http
-      .post(`${this.config.editorApiUrl}/refextract/${sourceType}`, body)
-      .map(res => res.json())
-      .toPromise();
+  constructor(protected http: Http, protected config: AppConfigService) {
+    super(http, config);
   }
 
+  fetchWorkflowObject(objectId: string): Promise<Object> {
+    this.holdingpenObjectApiUrl = `${this.config.holdingpenApiUrl}/${objectId}`;
+    return this.fetchUrl(this.holdingpenObjectApiUrl);
+  }
+
+
+  saveWorkflowObject(record: Object): Observable<Object> {
+    return this.http
+      .put(this.holdingpenObjectApiUrl, record)
+      .map(res => res.json());
+  }
 }

@@ -20,30 +20,32 @@
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
  */
 
-import { Component, Input } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
 
-import { HoldingpenApiService, RecordCleanupService, BeforeUnloadPromptService } from '../../shared/services';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/toPromise';
 
-@Component({
-  selector: 're-editor-holdingpen-toolbar-save',
-  templateUrl: './editor-holdingpen-toolbar-save.component.html',
-  styleUrls: [
-    '../../editor-container/editor-container.component.scss'
-  ]
-})
-export class EditorHoldingPenToolbarSaveComponent {
-  @Input() workflowObject: { id: string };
+import { AppConfigService } from './app-config.service';
 
-  constructor(private apiService: HoldingpenApiService,
-    private recordCleanupService: RecordCleanupService,
-    private beforeUnloadPromptService: BeforeUnloadPromptService) { }
+@Injectable()
+export class CommonApiService {
 
-  onClickSave(event: Object) {
-    this.recordCleanupService.cleanup(this.workflowObject['metadata']);
-    this.apiService.saveWorkflowObject(this.workflowObject)
-      .subscribe(resp => {
-        this.beforeUnloadPromptService.unregister();
-        window.location.href = `/holdingpen/${this.workflowObject.id}`;
-      });
+  constructor(protected http: Http, protected config: AppConfigService) { }
+
+  fetchUrl(url: string): Promise<Object> {
+    return this.http.get(url)
+      .map(res => res.json())
+      .toPromise();
   }
+
+  refExtract(source: string, sourceType: string): Promise<Array<Object>> {
+    let body = { [sourceType]: source };
+    return this.http
+      .post(`${this.config.editorApiUrl}/refextract/${sourceType}`, body)
+      .map(res => res.json())
+      .toPromise();
+  }
+
 }
