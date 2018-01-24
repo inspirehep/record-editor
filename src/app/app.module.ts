@@ -40,7 +40,7 @@ export class RavenErrorHandler implements ErrorHandler {
     BrowserAnimationsModule, // needed for ToastrModule
     HttpModule,
     AppRouter,
-    // feature-modules
+
     CoreModule, // all core services
     AccordionModule.forRoot(),
     // ngx-toastr
