@@ -50,24 +50,32 @@ export class MultiApiService extends CommonApiService {
       ).map(res => res.json());
   }
 
-  previewActions(userActions: UserActions, pageNumber: number, size: number): Observable<RecordsPreview> {
-    return this.http
-      .post(`${this.url}/preview`, {
+  previewActions(userActions: UserActions, page: number, size: number): Observable<RecordsPreview> {
+    if ( page === -1) {
+      return this.http
+      .post(`${this.url}/search`, {
         userActions,
-        number: pageNumber,
         size
       }).map(res => res.json());
+    } else {
+    return this.http
+      .post(`${this.url}/search`, {
+        userActions,
+        page,
+        size
+      }).map(res => res.json());
+    }
   }
 
-  fetchPaginatedRecords(pageNumber: number, size: number): Observable<PaginatedRecords> {
+  fetchPaginatedRecords(page: number, size: number): Observable<PaginatedRecords> {
     return this.http
-      .get(`${this.url}/search?number=${pageNumber}&size=${size}`)
+      .get(`${this.url}/search?number=${page}&size=${size}`)
       .map(res => res.json());
   }
 
-  searchRecords(query: string, pageNumber: number, collection: string, size: number): Observable<QueryResult> {
+  searchRecords(query: string, page: number, collection: string, size: number): Observable<QueryResult> {
     return this.http
-      .get(`${this.url}/search?page=${pageNumber}&q=${query}&index=${collection}&size=${size}`)
+      .get(`${this.url}/search?page=${page}&q=${query}&index=${collection}&size=${size}`)
       .map(res => res.json());
   }
 

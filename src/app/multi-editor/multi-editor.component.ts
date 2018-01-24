@@ -130,16 +130,17 @@ export class MultiEditorComponent implements OnInit {
 
   onPreviewClick() {
     this.previewedActions = this.userActions;
-    this.previewActions();
+    this.currentPage = 1;
+    this.fetchPreviewPage(-1);
   }
 
-  previewActions() {
+  fetchPreviewPage(page: number) {
     if (!this.hasAnyNonEmptyAction(this.userActions)) {
       this.toastr.error('Please use at least one action to preview');
     } else if (!this.validateActionsKeypaths(this.userActions)) {
       this.toastr.error('Please use valid paths provided by autocompletion');
     } else {
-      this.apiService.previewActions(this.userActions, this.currentPage, this.pageSize)
+      this.apiService.previewActions(this.userActions, page, this.pageSize)
         .subscribe((res) => {
           this.records = res.json_records;
           this.jsonPatches = res.json_patches;
@@ -155,7 +156,7 @@ export class MultiEditorComponent implements OnInit {
 
   onPageChange(page: number) {
     this.currentPage = page;
-    this.previewMode ? this.previewActions() : this.fetchPage();
+    this.previewMode ? this.fetchPreviewPage(page) : this.fetchPage();
   }
 
   private fetchPage() {
