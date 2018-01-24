@@ -25,7 +25,13 @@ export class ArrayNodeComponent extends AbstractParentNode implements OnInit {
         } else if (patch.path.length > this.depth) {
           this.diffKeys.set(patch.path[this.depth], true);
         }
-        this.patchesMap.set(patch.path[this.depth], this.getPatchesForChild(patch.path[this.depth]));
+        if (this.shouldExpandKeys) {
+          this.value.forEach((value, index) => {
+            this.patchesMap.set(index.toString(), this.diff);
+          });
+        } else {
+          this.patchesMap.set(patch.path[this.depth].toString(), this.getPatchesForChild(patch.path[this.depth]));
+        }
       });
       this.diffType = this.diff[0].op;
     }
