@@ -21,12 +21,13 @@
  */
 
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SchemaValidationProblems } from 'ng2-json-editor';
 import { ToastrService } from 'ngx-toastr';
 
 import { RecordApiService, AppConfigService, DomUtilsService, GlobalAppStateService } from '../../core/services';
-import { SubscriberComponent } from '../../shared/classes';
+import { RecordResources } from '../../shared/interfaces';
+import { SubscriberComponent, ApiError } from '../../shared/classes';
 
 @Component({
   selector: 're-json-editor-wrapper',
@@ -47,6 +48,7 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
   revision: object | undefined;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+    private router: Router,
     private route: ActivatedRoute,
     private apiService: RecordApiService,
     private appConfigService: AppConfigService,
@@ -58,9 +60,19 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
 
   ngOnChanges(changes: SimpleChanges) {
     if ((changes['recordId'] || changes['recordType']) && this.recordId && this.recordType) {
-      // component loaded and being used by record-search
+      // component loaded and being used by record-search, not router
       this.record = undefined; // don't display old record while new is loading
-      this.fetch(this.recordType, this.recordId);
+      this.apiService
+        .fetchRecordResources(this.recordType, this.recordId)
+        .subscribe(resources => {
+          this.assignResourcesToProperties(resources);
+        }, (error: ApiError) => {
+          if (error.status === 403) {
+            this.toastrService.error(`Logged in user can not access to the record: ${this.recordType}/${this.recordId}`, 'Forbidden');
+          } else {
+            this.toastrService.error('Could not load the record!', 'Error');
+          }
+        });
     }
   }
 
@@ -69,13 +81,12 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     this.domUtilsService.fitEditorHeightFullPageOnResize();
     this.domUtilsService.fitEditorHeightFullPage();
 
-    if (!this.recordId || !this.recordType) {
-      // component loaded via router, @Input() aren't passed
-      this.route.params
-        .filter(params => params['recid'])
+    if (!this.recordId && !this.recordType) {
+      // component loaded via router, if @Input() aren't passed
+      this.route.data
         .takeUntil(this.isDestroyed)
-        .subscribe(params => {
-          this.fetch(params['type'], params['recid']);
+        .subscribe((data: { resources: RecordResources }) => {
+          this.assignResourcesToProperties(data.resources);
         });
     }
 
@@ -85,6 +96,15 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
         this.config = Object.assign({}, config);
         this.changeDetectorRef.markForCheck();
       });
+  }
+
+  private assignResourcesToProperties(resources: RecordResources) {
+    this.record = resources.record;
+    this.globalAppStateService.jsonBeingEdited$.next(this.record);
+    this.globalAppStateService.isJsonUpdated$.next(false);
+    this.config = this.appConfigService.getConfigForRecord(this.record);
+    this.schema = resources.schema;
+    this.changeDetectorRef.markForCheck();
   }
 
   onRecordChange(record: object) {
@@ -114,45 +134,5 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
   onValidationProblems(problems: SchemaValidationProblems) {
     this.globalAppStateService
       .validationProblems$.next(problems);
-  }
-
-  /**
-   * Performs api calls for a single record to be loaded
-   * and __assigns__ fetched data to class properties
-   *
-   * - checks permission
-   * - fetches record
-   * - fetches schema
-   *
-   * - shows toast message when any call fails
-   */
-  private fetch(recordType: string, recordId: string) {
-    let loadingToastId;
-    this.apiService.checkEditorPermission(recordType, recordId)
-      .then(() => {
-        // TODO: move toast call out of then after https://github.com/angular/angular/pull/18352
-        loadingToastId = this.toastrService.info(
-          `Loading ${recordType}/${recordId}`, 'Wait').toastId;
-        return this.apiService.fetchRecord(recordType, recordId);
-      }).then(json => {
-        this.record = json['metadata'];
-        this.globalAppStateService
-          .jsonBeingEdited$.next(this.record);
-        this.globalAppStateService
-          .isJsonUpdated$.next(false);
-        this.config = this.appConfigService.getConfigForRecord(this.record);
-        return this.apiService.fetchUrl(this.record['$schema']);
-      }).then(schema => {
-        this.toastrService.clear(loadingToastId);
-        this.schema = schema;
-        this.changeDetectorRef.markForCheck();
-      }).catch(error => {
-        this.toastrService.clear(loadingToastId);
-        if (error.status === 403) {
-          this.toastrService.error(`Logged in user can not access to the record: ${recordType}/${recordId}`, 'Forbidden');
-        } else {
-          this.toastrService.error('Could not load the record!', 'Error');
-        }
-      });
   }
 }

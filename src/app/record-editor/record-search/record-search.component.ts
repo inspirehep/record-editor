@@ -43,7 +43,7 @@ interface RouteType {
 export class RecordSearchComponent extends SubscriberComponent implements OnInit {
 
   recordType: string;
-  recordCursor: number;
+  recordCursor = 0;
   foundRecordIds: Array<number>;
 
   constructor(private route: ActivatedRoute,
@@ -60,18 +60,16 @@ export class RecordSearchComponent extends SubscriberComponent implements OnInit
         this.changeDetectorRef.markForCheck();
       });
 
-    const searchSub = Observable.combineLatest(
-      this.route.params,
-      this.route.queryParams,
-      (params, queryParams) => {
-        return { params, queryParams };
-      }).do((route: RouteType) => {
-        this.recordType = route.params.type;
-      }).filter((route: RouteType) => Boolean(route.queryParams.query))
-      .switchMap((route: RouteType) => this.recordSearchService.search(route.params.type, route.queryParams.query))
+    this.route.params
       .takeUntil(this.isDestroyed)
-      .subscribe(recordIds => {
-        this.foundRecordIds = recordIds;
+      .subscribe(params => {
+        this.recordType = params.type;
+      });
+
+    this.route.data
+      .takeUntil(this.isDestroyed)
+      .subscribe((data: { recids: Array<number> }) => {
+        this.foundRecordIds = data.recids;
         this.changeDetectorRef.markForCheck();
       });
   }

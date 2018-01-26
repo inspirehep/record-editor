@@ -113,9 +113,9 @@ export class SearchBarComponent extends SubscriberComponent implements OnInit {
     const query = this.query;
     const isQueryNumber = !isNaN(+query);
     if (isQueryNumber) {
-      this.router.navigate([`${this.recordType}/${query}`]);
+      this.router.navigate(['record', this.recordType, query]);
     } else {
-      this.router.navigate([`${this.recordType}/search`], { queryParams: { query } });
+      this.router.navigate(['record', this.recordType, 'search'], { queryParams: { query } });
     }
   }
 

@@ -29,14 +29,14 @@ import { Observable } from 'rxjs/Observable';
 import { environment } from '../../../environments/environment';
 import { AppConfigService } from './app-config.service';
 import { CommonApiService } from './common-api.service';
-import { Ticket, RecordRevision } from '../../shared/interfaces';
+import { Ticket, RecordRevision, RecordResources } from '../../shared/interfaces';
 import { ApiError } from '../../shared/classes';
 import { editorApiUrl, apiUrl } from '../../shared/config';
 
 @Injectable()
 export class RecordApiService extends CommonApiService {
 
-  private currentRecordApiUrl: string;
+  private currentRecordSaveApiUrl: string;
   private currentRecordEditorApiUrl: string;
   private currentRecordId: string;
 
@@ -55,17 +55,21 @@ export class RecordApiService extends CommonApiService {
       .toPromise();
   }
 
-  fetchRecord(pidType: string, pidValue: string): Promise<Object> {
+  fetchRecordResources(pidType: string, pidValue: string): Observable<RecordResources> {
     this.currentRecordId = pidValue;
-    this.currentRecordApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
+    this.currentRecordSaveApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
     this.currentRecordEditorApiUrl = `${editorApiUrl}/${pidType}/${pidValue}`;
     this.newRecordFetched$.next(null);
-    return this.fetchUrl(this.currentRecordApiUrl);
+    return this.http
+      .get(this.currentRecordEditorApiUrl)
+      .map(res => res.json())
+      .catch(error => Observable.throw(new ApiError(error)));
+
   }
 
   saveRecord(record: object): Observable<void> {
     return this.http
-      .put(this.currentRecordApiUrl, record)
+      .put(this.currentRecordSaveApiUrl, record)
       .catch(error => Observable.throw(new ApiError(error)));
   }
 
@@ -125,7 +129,8 @@ export class RecordApiService extends CommonApiService {
     return this.http
       .get(`${apiUrl}/${recordType}/?q=${query}&size=200`, { headers: this.returnOnlyIdsHeaders })
       .map(res => res.json())
-      .map(json => json.hits.recids);
+      .map(json => json.hits.recids)
+      .catch(error => Observable.throw(new ApiError(error)));
   }
 
   preview(record: object): Promise<string> {
