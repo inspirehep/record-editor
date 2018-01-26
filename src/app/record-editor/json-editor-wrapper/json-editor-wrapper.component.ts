@@ -20,10 +20,21 @@
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
  */
 
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SchemaValidationProblems } from 'ng2-json-editor';
 import { ToastrService } from 'ngx-toastr';
+
+import { NotIdle } from 'idlejs/dist';
 
 import { RecordApiService, AppConfigService, DomUtilsService, GlobalAppStateService } from '../../core/services';
 import { RecordResources } from '../../shared/interfaces';
@@ -37,9 +48,16 @@ import { SubscriberComponent, ApiError } from '../../shared/classes';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class JsonEditorWrapperComponent extends SubscriberComponent implements OnInit, OnChanges {
+export class JsonEditorWrapperComponent extends SubscriberComponent implements OnInit, OnDestroy, OnChanges {
   @Input() recordId?: string;
   @Input() recordType?: string;
+
+  notIdle = new NotIdle()
+    .whenInteractive()
+    .within(10)
+    .do(() => {
+      this.apiService.lockRecord();
+    });
 
   record: object;
   schema: object;
@@ -62,10 +80,16 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     if ((changes['recordId'] || changes['recordType']) && this.recordId && this.recordType) {
       // component loaded and being used by record-search, not router
       this.record = undefined; // don't display old record while new is loading
+      // unlock old record before fetching new one
+      if (changes['recordId'].previousValue) {
+        this.apiService.unlockRecord();
+        this.notIdle.stop();
+      }
+
       this.apiService
         .fetchRecordResources(this.recordType, this.recordId)
         .subscribe(resources => {
-          this.assignResourcesToProperties(resources);
+          this.assignResourcesToPropertiesWithSideEffects(resources);
         }, (error: ApiError) => {
           if (error.status === 403) {
             this.toastrService.error(`Logged in user can not access to the record: ${this.recordType}/${this.recordId}`, 'Forbidden');
@@ -81,12 +105,13 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     this.domUtilsService.fitEditorHeightFullPageOnResize();
     this.domUtilsService.fitEditorHeightFullPage();
 
+
     if (!this.recordId && !this.recordType) {
       // component loaded via router, if @Input() aren't passed
       this.route.data
         .takeUntil(this.isDestroyed)
         .subscribe((data: { resources: RecordResources }) => {
-          this.assignResourcesToProperties(data.resources);
+          this.assignResourcesToPropertiesWithSideEffects(data.resources);
         });
     }
 
@@ -98,13 +123,21 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
       });
   }
 
-  private assignResourcesToProperties(resources: RecordResources) {
+  private assignResourcesToPropertiesWithSideEffects(resources: RecordResources) {
     this.record = resources.record;
     this.globalAppStateService.jsonBeingEdited$.next(this.record);
     this.globalAppStateService.isJsonUpdated$.next(false);
     this.config = this.appConfigService.getConfigForRecord(this.record);
     this.schema = resources.schema;
     this.changeDetectorRef.markForCheck();
+
+    this.notIdle.start();
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.apiService.unlockRecord();
+    this.notIdle.stop();
   }
 
   onRecordChange(record: object) {

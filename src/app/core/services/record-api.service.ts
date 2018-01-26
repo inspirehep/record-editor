@@ -48,13 +48,6 @@ export class RecordApiService extends CommonApiService {
     super(http);
   }
 
-  checkEditorPermission(pidType: string, pidValue: string): Promise<any> {
-    this.currentRecordEditorApiUrl = `${editorApiUrl}/${pidType}/${pidValue}`;
-    return this.http
-      .get(`${this.currentRecordEditorApiUrl}/permission`)
-      .toPromise();
-  }
-
   fetchRecordResources(pidType: string, pidValue: string): Observable<RecordResources> {
     this.currentRecordId = pidValue;
     this.currentRecordSaveApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
@@ -71,6 +64,18 @@ export class RecordApiService extends CommonApiService {
     return this.http
       .put(this.currentRecordSaveApiUrl, record)
       .catch(error => Observable.throw(new ApiError(error)));
+  }
+
+  lockRecord() {
+    this.http
+      .post(`${this.currentRecordEditorApiUrl}/lock/lock`, null)
+      .subscribe();
+  }
+
+  unlockRecord() {
+    this.http
+      .post(`${this.currentRecordEditorApiUrl}/lock/unlock`, null)
+      .subscribe();
   }
 
   fetchRecordTickets(): Promise<Array<Ticket>> {
