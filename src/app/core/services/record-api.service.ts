@@ -49,6 +49,9 @@ export class RecordApiService extends CommonApiService {
   }
 
   fetchRecordResources(pidType: string, pidValue: string): Observable<RecordResources> {
+    if (this.currentRecordEditorApiUrl) {
+      this.unlockRecord();
+    }
     this.currentRecordId = pidValue;
     this.currentRecordSaveApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
     this.currentRecordEditorApiUrl = `${editorApiUrl}/${pidType}/${pidValue}`;

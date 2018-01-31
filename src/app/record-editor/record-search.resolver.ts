@@ -38,6 +38,11 @@ export class RecordSearchResolver implements Resolve<string> {
   resolve(route: ActivatedRouteSnapshot): Observable<string> {
     const recordType = route.params.type;
     const query = route.queryParams.query;
+
+    if (!query) {
+      return Observable.of(null);
+    }
+
     let cursor = Number(route.queryParams.cursor);
 
     return this.recordSearchService

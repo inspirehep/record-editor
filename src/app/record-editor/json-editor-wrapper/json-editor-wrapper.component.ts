@@ -79,6 +79,7 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
 
     this.route.data
       .takeUntil(this.isDestroyed)
+      .filter((data: { resources: RecordResources }) => data.resources != null)
       .subscribe((data: { resources: RecordResources }) => {
         this.assignResourcesToPropertiesWithSideEffects(data.resources);
       });
@@ -104,7 +105,6 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.apiService.unlockRecord();
     this.notIdle.stop();
   }
 
