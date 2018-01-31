@@ -1,23 +1,35 @@
 import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 
-import { RecordSearchComponent } from './record-search';
 import { JsonEditorWrapperComponent } from './json-editor-wrapper';
 import { RecordResourcesResolver } from './record-resources.resolver';
 import { RecordSearchResolver } from './record-search.resolver';
-
+import { RecordTicketsResolver } from './record-tickets.resolver';
 
 const recordEditorRoutes: Routes = [
   {
     path: ':type/search',
-    component: RecordSearchComponent,
-    resolve: { recids: RecordSearchResolver },
-    runGuardsAndResolvers: 'paramsOrQueryParamsChange'
+    resolve: { foundRecordId: RecordSearchResolver },
+    runGuardsAndResolvers: 'paramsOrQueryParamsChange',
+    children: [
+      {
+        path: '',
+        component: JsonEditorWrapperComponent,
+        resolve: {
+          resources: RecordResourcesResolver,
+          tickets: RecordTicketsResolver
+        },
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange'
+      }
+    ]
   },
   {
     path: ':type/:recid',
     component: JsonEditorWrapperComponent,
-    resolve: { resources: RecordResourcesResolver }
+    resolve: {
+      resources: RecordResourcesResolver,
+      tickets: RecordTicketsResolver
+    }
   }
 ];
 
@@ -30,7 +42,8 @@ const recordEditorRoutes: Routes = [
   ],
   providers: [
     RecordResourcesResolver,
-    RecordSearchResolver
+    RecordSearchResolver,
+    RecordTicketsResolver
   ]
 })
 export class RecordEditorRouter { }

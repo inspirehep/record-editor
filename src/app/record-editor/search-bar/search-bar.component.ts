@@ -55,13 +55,6 @@ export class SearchBarComponent extends SubscriberComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.recordSearchService.cursor$
-      .takeUntil(this.isDestroyed)
-      .subscribe(cursor => {
-        this.cursor = cursor;
-        this.changeDetectorRef.markForCheck();
-      });
-
     this.recordSearchService.resultCount$
       .takeUntil(this.isDestroyed)
       .subscribe(resultCount => {
@@ -73,6 +66,7 @@ export class SearchBarComponent extends SubscriberComponent implements OnInit {
       .takeUntil(this.isDestroyed)
       .subscribe((params: SearchParams) => {
         this.query = params.query;
+        this.cursor = Number(params.cursor) || 0;
         this.changeDetectorRef.markForCheck();
       });
 
@@ -145,12 +139,21 @@ export class SearchBarComponent extends SubscriberComponent implements OnInit {
 
   private next() {
     this.cursor++;
-    this.recordSearchService.setCursor(this.cursor);
+    this.navigateToCursor();
   }
 
   private previous() {
     this.cursor--;
-    this.recordSearchService.setCursor(this.cursor);
+    this.navigateToCursor();
+  }
+
+  private navigateToCursor() {
+    this.router.navigate(['record', this.recordType, 'search'], {
+      queryParams: {
+        query: this.query,
+        cursor: this.cursor
+      }
+    });
   }
 
 }

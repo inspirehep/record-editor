@@ -25,7 +25,6 @@ import {
   Input,
   OnInit,
   OnDestroy,
-  OnChanges,
   SimpleChanges,
   ChangeDetectionStrategy,
   ChangeDetectorRef
@@ -48,10 +47,7 @@ import { SubscriberComponent, ApiError } from '../../shared/classes';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class JsonEditorWrapperComponent extends SubscriberComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() recordId?: string;
-  @Input() recordType?: string;
-
+export class JsonEditorWrapperComponent extends SubscriberComponent implements OnInit, OnDestroy {
   notIdle = new NotIdle()
     .whenInteractive()
     .within(10)
@@ -76,44 +72,16 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     super();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if ((changes['recordId'] || changes['recordType']) && this.recordId && this.recordType) {
-      // component loaded and being used by record-search, not router
-      this.record = undefined; // don't display old record while new is loading
-      // unlock old record before fetching new one
-      if (changes['recordId'].previousValue) {
-        this.apiService.unlockRecord();
-        this.notIdle.stop();
-      }
-
-      this.apiService
-        .fetchRecordResources(this.recordType, this.recordId)
-        .subscribe(resources => {
-          this.assignResourcesToPropertiesWithSideEffects(resources);
-        }, (error: ApiError) => {
-          if (error.status === 403) {
-            this.toastrService.error(`Logged in user can not access to the record: ${this.recordType}/${this.recordId}`, 'Forbidden');
-          } else {
-            this.toastrService.error('Could not load the record!', 'Error');
-          }
-        });
-    }
-  }
-
   ngOnInit() {
     this.domUtilsService.registerBeforeUnloadPrompt();
     this.domUtilsService.fitEditorHeightFullPageOnResize();
     this.domUtilsService.fitEditorHeightFullPage();
 
-
-    if (!this.recordId && !this.recordType) {
-      // component loaded via router, if @Input() aren't passed
-      this.route.data
-        .takeUntil(this.isDestroyed)
-        .subscribe((data: { resources: RecordResources }) => {
-          this.assignResourcesToPropertiesWithSideEffects(data.resources);
-        });
-    }
+    this.route.data
+      .takeUntil(this.isDestroyed)
+      .subscribe((data: { resources: RecordResources }) => {
+        this.assignResourcesToPropertiesWithSideEffects(data.resources);
+      });
 
     this.appConfigService.onConfigChange
       .takeUntil(this.isDestroyed)
@@ -151,12 +119,6 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     } else {
       this.toastrService.warning('You are changing the revision and your changes will be lost!', 'Warning');
     }
-  }
-
-  onRevisionRevert() {
-    this.record = this.revision;
-    this.revision = undefined;
-    this.changeDetectorRef.markForCheck();
   }
 
   onRevisionChange(revision: Object) {

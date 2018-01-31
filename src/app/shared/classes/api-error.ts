@@ -31,8 +31,15 @@ export class ApiError {
 
   constructor(error: Response, parseBody = true) {
     this.status = error.status;
-    this.body = parseBody ?
-      error.json() : Object.create(null);
+    if (parseBody) {
+      try {
+        this.body = error.json();
+      } catch (_) {
+        this.body = Object.create(null);
+      }
+    } else {
+      this.body = Object.create(null);
+    }
   }
 
   get message(): string | undefined {

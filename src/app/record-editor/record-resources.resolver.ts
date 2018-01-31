@@ -34,9 +34,10 @@ export class RecordResourcesResolver implements Resolve<RecordResources> {
     private apiService: RecordApiService) { }
 
   resolve(route: ActivatedRouteSnapshot): Observable<RecordResources> {
-    const params = route.params;
+    const recordType = route.params.type;
+    const recordId = route.params.recid || route.parent.data.foundRecordId;
     return this.apiService
-      .fetchRecordResources(params.type, params.recid)
+      .fetchRecordResources(recordType, recordId)
       .take(1)
       .catch((error: ApiError) => {
         this.router.navigate(['error', error.status]);

@@ -24,24 +24,31 @@ import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
-import { RecordResourcesResolver } from './record-resources.resolver';
-import { RecordSearchService } from '../core/services';
+import { RecordApiService, RecordSearchService } from '../core/services';
 import { RecordResources } from '../shared/interfaces';
 import { ApiError } from '../shared/classes';
 
 @Injectable()
-export class RecordSearchResolver implements Resolve<Array<number>> {
+export class RecordSearchResolver implements Resolve<string> {
+
   constructor(private router: Router,
+    private apiService: RecordApiService,
     private recordSearchService: RecordSearchService) { }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<Array<number>> {
-    if (!route.queryParams.query) {
-      return Observable.of([]);
-    }
+  resolve(route: ActivatedRouteSnapshot): Observable<string> {
+    const recordType = route.params.type;
+    const query = route.queryParams.query;
+    let cursor = Number(route.queryParams.cursor);
 
     return this.recordSearchService
-      .search(route.params.type, route.queryParams.query)
-      .take(1)
+      .search(recordType, query)
+      .filter(foundIds => foundIds.length > 0)
+      .do(foundIds => {
+        if (!cursor || cursor >= foundIds.length || cursor < 0) {
+          cursor = 0;
+        }
+      })
+      .map(foundIds => String(foundIds[cursor]))
       .catch((error: ApiError) => {
         this.router.navigate(['error', error.status]);
         return null;

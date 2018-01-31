@@ -52,6 +52,7 @@ export class RecordApiService extends CommonApiService {
     this.currentRecordId = pidValue;
     this.currentRecordSaveApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
     this.currentRecordEditorApiUrl = `${editorApiUrl}/${pidType}/${pidValue}`;
+    // TODO: remove this side effect when every action done in resolvers
     this.newRecordFetched$.next(null);
     return this.http
       .get(this.currentRecordEditorApiUrl)
@@ -78,8 +79,10 @@ export class RecordApiService extends CommonApiService {
       .subscribe();
   }
 
-  fetchRecordTickets(): Promise<Array<Ticket>> {
-    return this.fetchUrl(`${this.currentRecordEditorApiUrl}/rt/tickets`);
+  fetchRecordTickets(): Observable<Array<Ticket>> {
+    return this.http
+      .get(`${this.currentRecordEditorApiUrl}/rt/tickets`)
+      .map(res => res.json());
   }
 
   createRecordTicket(ticket: Ticket): Promise<{ id: string, link: string }> {
@@ -109,11 +112,10 @@ export class RecordApiService extends CommonApiService {
       .map((queues: Array<{ name: string }>) => queues.map(queue => queue.name));
   }
 
-  fetchRevisions(): Promise<Array<RecordRevision>> {
+  fetchRevisions(): Observable<Array<RecordRevision>> {
     return this.http
       .get(`${this.currentRecordEditorApiUrl}/revisions`)
-      .map(res => res.json())
-      .toPromise();
+      .map(res => res.json());
   }
 
   fetchRevisionData(transactionId: number, recUUID: string): Promise<Object> {

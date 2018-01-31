@@ -31,7 +31,6 @@ import { RecordToolbarComponent } from './record-toolbar';
 import { RecordHistoryComponent } from './record-history';
 import { SearchBarComponent } from './search-bar';
 import { TicketsComponent, NewTicketModalComponent, TicketComponent } from './tickets';
-import { RecordSearchComponent } from './record-search';
 import { SavePreviewModalComponent } from './save-preview-modal';
 import { ManualMergeModalComponent } from './manual-merge-modal';
 
@@ -48,7 +47,6 @@ import { ManualMergeModalComponent } from './manual-merge-modal';
     TicketsComponent,
     NewTicketModalComponent,
     TicketComponent,
-    RecordSearchComponent,
     SavePreviewModalComponent,
     ManualMergeModalComponent
   ]
