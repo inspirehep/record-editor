@@ -46,7 +46,7 @@ export class RecordResourcesResolver implements Resolve<RecordResources> {
       .take(1)
       .catch((error: ApiError) => {
         this.router.navigate(['error', error.status]);
-        return null;
+        return Observable.empty();
       });
   }
 }

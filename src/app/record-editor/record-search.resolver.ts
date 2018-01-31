@@ -56,7 +56,7 @@ export class RecordSearchResolver implements Resolve<string> {
       .map(foundIds => String(foundIds[cursor]))
       .catch((error: ApiError) => {
         this.router.navigate(['error', error.status]);
-        return null;
+        return Observable.empty();
       });
   }
 }
