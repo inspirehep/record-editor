@@ -30,19 +30,27 @@ import { RecordApiService } from './record-api.service';
 @Injectable()
 export class RecordSearchService {
   readonly resultCount$ = new ReplaySubject<number>(1);
-  readonly cursor$ = new ReplaySubject<number>(1);
+
+  private lastSearchResult: Array<number>;
+  private lastSearchQuery: string;
 
   constructor(private apiService: RecordApiService) { }
 
+  /**
+   * Performs search with side effect and simple caching
+   */
   search(recordType: string, query: string): Observable<Array<number>> {
-    return this.apiService.searchRecord(recordType, query)
-      .do(results => {
-        this.resultCount$.next(results.length);
-        this.cursor$.next(0);
+    if (query === this.lastSearchQuery) {
+      return Observable.of(this.lastSearchResult);
+    }
+
+    return this.apiService
+      .searchRecord(recordType, query)
+      .do((foundIds) => {
+        this.lastSearchResult = foundIds;
+        this.lastSearchQuery = query;
+        this.resultCount$.next(foundIds.length);
       });
   }
 
-  setCursor(cursor: number) {
-    this.cursor$.next(cursor);
-  }
 }

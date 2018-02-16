@@ -1,6 +1,6 @@
 /*
  * This file is part of record-editor.
- * Copyright (C) 2017 CERN.
+ * Copyright (C) 2018 CERN.
  *
  * record-editor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,28 +18,13 @@
  * In applying this license, CERN does not
  * waive the privileges and immunities granted to it by virtue of its status
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
-*/
+ */
 
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { SchemaValidationProblems } from 'ng2-json-editor';
+import { Component } from '@angular/core';
 
-import { editorConfigs } from '../../shared/config';
-import { onDocumentTypeChange } from '../../shared/config/hep';
-
-@Injectable()
-export class GlobalAppStateService {
-  readonly jsonBeingEdited$ = new ReplaySubject<object>(1);
-
-  readonly isJsonUpdated$ = new ReplaySubject<boolean>(1);
-
-  readonly validationProblems$ = new Subject<SchemaValidationProblems>();
-  readonly hasAnyValidationProblem$ = this.validationProblems$
-    .map(problems => this.hasAnyValidationProblem(problems));
-
-  private hasAnyValidationProblem(problems: SchemaValidationProblems): boolean {
-    return Object.keys(problems)
-      .some(path => problems[path].length > 0);
-  }
-}
+@Component({
+  selector: 're-forbidden',
+  templateUrl: './forbidden.component.html',
+  styleUrls: ['./forbidden.component.scss']
+})
+export class ForbiddenComponent { }

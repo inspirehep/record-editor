@@ -21,12 +21,10 @@
  */
 
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-
-import { ToastrService } from 'ngx-toastr';
+import { ActivatedRoute } from '@angular/router';
 
 import { Observable } from 'rxjs/Observable';
 
-import { RecordApiService } from '../../core/services';
 import { Ticket } from '../../shared/interfaces';
 import { SubscriberComponent } from '../../shared/classes';
 
@@ -44,16 +42,19 @@ export class TicketsComponent extends SubscriberComponent implements OnInit {
   displayLimit = 1;
   tickets: Array<Ticket>;
 
-  constructor(private apiService: RecordApiService,
-    private toastrService: ToastrService,
+  constructor(private route: ActivatedRoute,
     private changeDetectorRef: ChangeDetectorRef) {
     super();
   }
 
   ngOnInit() {
-    this.apiService.newRecordFetched$
+    // TODO: handle error after https://github.com/angular/angular/issues/13873 is resolved
+    this.route.data
       .takeUntil(this.isDestroyed)
-      .subscribe(() => this.fetchTickets());
+      .subscribe((data: { tickets: Array<Ticket>}) => {
+        this.tickets = data.tickets;
+        this.changeDetectorRef.markForCheck();
+      });
   }
 
   onTicketResolve(ticketIndex: number) {
@@ -62,19 +63,5 @@ export class TicketsComponent extends SubscriberComponent implements OnInit {
 
   onTicketCreate(ticket: Ticket) {
     this.tickets.push(ticket);
-  }
-
-  private fetchTickets() {
-    this.apiService.fetchRecordTickets()
-      .then(tickets => {
-        this.tickets = tickets;
-        this.changeDetectorRef.markForCheck();
-      }).catch(error => {
-        if (error.status === 403) {
-          this.toastrService.error('Logged in user can not access to tickets', 'Forbidden');
-        } else {
-          this.toastrService.error('Could not load the tickets!', 'Error');
-        }
-      });
   }
 }

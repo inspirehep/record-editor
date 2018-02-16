@@ -20,13 +20,24 @@
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
  */
 
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {
+  Component,
+  Input,
+  OnInit,
+  OnDestroy,
+  SimpleChanges,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SchemaValidationProblems } from 'ng2-json-editor';
 import { ToastrService } from 'ngx-toastr';
 
+import { NotIdle } from 'idlejs/dist';
+
 import { RecordApiService, AppConfigService, DomUtilsService, GlobalAppStateService } from '../../core/services';
-import { SubscriberComponent } from '../../shared/classes';
+import { RecordResources } from '../../shared/interfaces';
+import { SubscriberComponent, ApiError } from '../../shared/classes';
 
 @Component({
   selector: 're-json-editor-wrapper',
@@ -36,9 +47,13 @@ import { SubscriberComponent } from '../../shared/classes';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class JsonEditorWrapperComponent extends SubscriberComponent implements OnInit, OnChanges {
-  @Input() recordId?: string;
-  @Input() recordType?: string;
+export class JsonEditorWrapperComponent extends SubscriberComponent implements OnInit, OnDestroy {
+  notIdle = new NotIdle()
+    .whenInteractive()
+    .within(10)
+    .do(() => {
+      this.apiService.lockRecord();
+    });
 
   record: object;
   schema: object;
@@ -47,6 +62,7 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
   revision: object | undefined;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+    private router: Router,
     private route: ActivatedRoute,
     private apiService: RecordApiService,
     private appConfigService: AppConfigService,
@@ -56,28 +72,17 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     super();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if ((changes['recordId'] || changes['recordType']) && this.recordId && this.recordType) {
-      // component loaded and being used by record-search
-      this.record = undefined; // don't display old record while new is loading
-      this.fetch(this.recordType, this.recordId);
-    }
-  }
-
   ngOnInit() {
     this.domUtilsService.registerBeforeUnloadPrompt();
     this.domUtilsService.fitEditorHeightFullPageOnResize();
     this.domUtilsService.fitEditorHeightFullPage();
 
-    if (!this.recordId || !this.recordType) {
-      // component loaded via router, @Input() aren't passed
-      this.route.params
-        .filter(params => params['recid'])
-        .takeUntil(this.isDestroyed)
-        .subscribe(params => {
-          this.fetch(params['type'], params['recid']);
-        });
-    }
+    this.route.data
+      .takeUntil(this.isDestroyed)
+      .filter((data: { resources: RecordResources }) => data.resources != null)
+      .subscribe((data: { resources: RecordResources }) => {
+        this.assignResourcesToPropertiesWithSideEffects(data.resources);
+      });
 
     this.appConfigService.onConfigChange
       .takeUntil(this.isDestroyed)
@@ -85,6 +90,22 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
         this.config = Object.assign({}, config);
         this.changeDetectorRef.markForCheck();
       });
+  }
+
+  private assignResourcesToPropertiesWithSideEffects(resources: RecordResources) {
+    this.record = resources.record;
+    this.globalAppStateService.jsonBeingEdited$.next(this.record);
+    this.globalAppStateService.isJsonUpdated$.next(false);
+    this.config = this.appConfigService.getConfigForRecord(this.record);
+    this.schema = resources.schema;
+    this.changeDetectorRef.markForCheck();
+
+    this.notIdle.start();
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.notIdle.stop();
   }
 
   onRecordChange(record: object) {
@@ -100,12 +121,6 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
     }
   }
 
-  onRevisionRevert() {
-    this.record = this.revision;
-    this.revision = undefined;
-    this.changeDetectorRef.markForCheck();
-  }
-
   onRevisionChange(revision: Object) {
     this.revision = revision;
     this.changeDetectorRef.markForCheck();
@@ -114,45 +129,5 @@ export class JsonEditorWrapperComponent extends SubscriberComponent implements O
   onValidationProblems(problems: SchemaValidationProblems) {
     this.globalAppStateService
       .validationProblems$.next(problems);
-  }
-
-  /**
-   * Performs api calls for a single record to be loaded
-   * and __assigns__ fetched data to class properties
-   *
-   * - checks permission
-   * - fetches record
-   * - fetches schema
-   *
-   * - shows toast message when any call fails
-   */
-  private fetch(recordType: string, recordId: string) {
-    let loadingToastId;
-    this.apiService.checkEditorPermission(recordType, recordId)
-      .then(() => {
-        // TODO: move toast call out of then after https://github.com/angular/angular/pull/18352
-        loadingToastId = this.toastrService.info(
-          `Loading ${recordType}/${recordId}`, 'Wait').toastId;
-        return this.apiService.fetchRecord(recordType, recordId);
-      }).then(json => {
-        this.record = json['metadata'];
-        this.globalAppStateService
-          .jsonBeingEdited$.next(this.record);
-        this.globalAppStateService
-          .isJsonUpdated$.next(false);
-        this.config = this.appConfigService.getConfigForRecord(this.record);
-        return this.apiService.fetchUrl(this.record['$schema']);
-      }).then(schema => {
-        this.toastrService.clear(loadingToastId);
-        this.schema = schema;
-        this.changeDetectorRef.markForCheck();
-      }).catch(error => {
-        this.toastrService.clear(loadingToastId);
-        if (error.status === 403) {
-          this.toastrService.error(`Logged in user can not access to the record: ${recordType}/${recordId}`, 'Forbidden');
-        } else {
-          this.toastrService.error('Could not load the record!', 'Error');
-        }
-      });
   }
 }

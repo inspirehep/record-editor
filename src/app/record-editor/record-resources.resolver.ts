@@ -1,6 +1,6 @@
 /*
  * This file is part of record-editor.
- * Copyright (C) 2017 CERN.
+ * Copyright (C) 2018 CERN.
  *
  * record-editor is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,28 +18,35 @@
  * In applying this license, CERN does not
  * waive the privileges and immunities granted to it by virtue of its status
  * as an Intergovernmental Organization or submit itself to any jurisdiction.
-*/
+ */
 
+import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { SchemaValidationProblems } from 'ng2-json-editor';
+import { Observable } from 'rxjs/Observable';
 
-import { editorConfigs } from '../../shared/config';
-import { onDocumentTypeChange } from '../../shared/config/hep';
+import { RecordApiService } from '../core/services';
+import { RecordResources } from '../shared/interfaces';
+import { ApiError } from '../shared/classes';
 
 @Injectable()
-export class GlobalAppStateService {
-  readonly jsonBeingEdited$ = new ReplaySubject<object>(1);
+export class RecordResourcesResolver implements Resolve<RecordResources> {
+  constructor(private router: Router,
+    private apiService: RecordApiService) { }
 
-  readonly isJsonUpdated$ = new ReplaySubject<boolean>(1);
+  resolve(route: ActivatedRouteSnapshot): Observable<RecordResources> {
+    const recordType = route.params.type;
+    const recordId = route.params.recid || route.parent.data.foundRecordId;
 
-  readonly validationProblems$ = new Subject<SchemaValidationProblems>();
-  readonly hasAnyValidationProblem$ = this.validationProblems$
-    .map(problems => this.hasAnyValidationProblem(problems));
+    if (!recordId) {
+      return Observable.of(null);
+    }
 
-  private hasAnyValidationProblem(problems: SchemaValidationProblems): boolean {
-    return Object.keys(problems)
-      .some(path => problems[path].length > 0);
+    return this.apiService
+      .fetchRecordResources(recordType, recordId)
+      .take(1)
+      .catch((error: ApiError) => {
+        this.router.navigate(['error', error.status]);
+        return Observable.empty();
+      });
   }
 }

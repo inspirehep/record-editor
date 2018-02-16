@@ -78,7 +78,7 @@ export class RecordHistoryComponent extends SubscriberComponent implements OnIni
   private fetchRevisions() {
     this.apiService
       .fetchRevisions()
-      .then(revisions => {
+      .subscribe(revisions => {
         this.revisions = revisions;
         this.changeDetectorRef.markForCheck();
       });

@@ -29,14 +29,14 @@ import { Observable } from 'rxjs/Observable';
 import { environment } from '../../../environments/environment';
 import { AppConfigService } from './app-config.service';
 import { CommonApiService } from './common-api.service';
-import { Ticket, RecordRevision } from '../../shared/interfaces';
+import { Ticket, RecordRevision, RecordResources } from '../../shared/interfaces';
 import { ApiError } from '../../shared/classes';
 import { editorApiUrl, apiUrl } from '../../shared/config';
 
 @Injectable()
 export class RecordApiService extends CommonApiService {
 
-  private currentRecordApiUrl: string;
+  private currentRecordSaveApiUrl: string;
   private currentRecordEditorApiUrl: string;
   private currentRecordId: string;
 
@@ -48,29 +48,44 @@ export class RecordApiService extends CommonApiService {
     super(http);
   }
 
-  checkEditorPermission(pidType: string, pidValue: string): Promise<any> {
-    this.currentRecordEditorApiUrl = `${editorApiUrl}/${pidType}/${pidValue}`;
-    return this.http
-      .get(`${this.currentRecordEditorApiUrl}/permission`)
-      .toPromise();
-  }
-
-  fetchRecord(pidType: string, pidValue: string): Promise<Object> {
+  fetchRecordResources(pidType: string, pidValue: string): Observable<RecordResources> {
+    if (this.currentRecordEditorApiUrl) {
+      this.unlockRecord();
+    }
     this.currentRecordId = pidValue;
-    this.currentRecordApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
+    this.currentRecordSaveApiUrl = `${apiUrl}/${pidType}/${pidValue}/db`;
     this.currentRecordEditorApiUrl = `${editorApiUrl}/${pidType}/${pidValue}`;
+    // TODO: remove this side effect when every action done in resolvers
     this.newRecordFetched$.next(null);
-    return this.fetchUrl(this.currentRecordApiUrl);
+    return this.http
+      .get(this.currentRecordEditorApiUrl)
+      .map(res => res.json())
+      .catch(error => Observable.throw(new ApiError(error)));
+
   }
 
   saveRecord(record: object): Observable<void> {
     return this.http
-      .put(this.currentRecordApiUrl, record)
+      .put(this.currentRecordSaveApiUrl, record)
       .catch(error => Observable.throw(new ApiError(error)));
   }
 
-  fetchRecordTickets(): Promise<Array<Ticket>> {
-    return this.fetchUrl(`${this.currentRecordEditorApiUrl}/rt/tickets`);
+  lockRecord() {
+    this.http
+      .post(`${this.currentRecordEditorApiUrl}/lock/lock`, null)
+      .subscribe();
+  }
+
+  unlockRecord() {
+    this.http
+      .post(`${this.currentRecordEditorApiUrl}/lock/unlock`, null)
+      .subscribe();
+  }
+
+  fetchRecordTickets(): Observable<Array<Ticket>> {
+    return this.http
+      .get(`${this.currentRecordEditorApiUrl}/rt/tickets`)
+      .map(res => res.json());
   }
 
   createRecordTicket(ticket: Ticket): Promise<{ id: string, link: string }> {
@@ -100,11 +115,10 @@ export class RecordApiService extends CommonApiService {
       .map((queues: Array<{ name: string }>) => queues.map(queue => queue.name));
   }
 
-  fetchRevisions(): Promise<Array<RecordRevision>> {
+  fetchRevisions(): Observable<Array<RecordRevision>> {
     return this.http
       .get(`${this.currentRecordEditorApiUrl}/revisions`)
-      .map(res => res.json())
-      .toPromise();
+      .map(res => res.json());
   }
 
   fetchRevisionData(transactionId: number, recUUID: string): Promise<Object> {
@@ -125,7 +139,8 @@ export class RecordApiService extends CommonApiService {
     return this.http
       .get(`${apiUrl}/${recordType}/?q=${query}&size=200`, { headers: this.returnOnlyIdsHeaders })
       .map(res => res.json())
-      .map(json => json.hits.recids);
+      .map(json => json.hits.recids)
+      .catch(error => Observable.throw(new ApiError(error)));
   }
 
   preview(record: object): Promise<string> {
