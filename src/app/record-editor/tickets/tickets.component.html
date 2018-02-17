@@ -1,6 +1,6 @@
 <ng-container *ngIf="tickets">
   <div>
-    <ul class="display col-md-8">
+    <ul class="display">
       <li *ngFor="let ticket of tickets | slice:0:displayLimit; let i = index">
         <re-ticket [ticket]="ticket" (resolve)="onTicketResolve(i)"></re-ticket>
       </li>
@@ -18,7 +18,7 @@
       </li>
     </ul>
   </ng-template>
-<div class="col-md-4">
+<div class="inline">
   <re-new-ticket-modal #newTicketModal (create)="onTicketCreate($event)"></re-new-ticket-modal>
 </div>
 </ng-container>
