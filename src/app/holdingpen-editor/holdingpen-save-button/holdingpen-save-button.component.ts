@@ -95,7 +95,7 @@ export class HoldingpenSaveButtonComponent extends SubscriberComponent implement
     this.apiService.saveWorkflowObjectWithCallbackUrl(this.workflowObject, this.callbackUrl)
       .do(() => this.domUtilsService.unregisterBeforeUnloadPrompt())
       .subscribe(() => {
-        window.open(`/holdingpen/${this.workflowObject}`);
+        this.domUtilsService.openHostRelativeUrlInNewTab(`/holdingpen/${this.workflowObject}`);
       }, (error: ApiError<WorkflowSaveErrorBody>) => {
         if (error.status === 400 && error.body.error_code === 'VALIDATION_ERROR') {
           this.jsonBeingEdited$.next(error.body.workflow);
