@@ -1,10 +1,10 @@
-<div class="navbar-form input-group col-md-7 pull-left inline">
+<div class="navbar-form input-group pull-left inline">
   <input class="form-control search" [(ngModel)]="query" (keyup.enter)="searchOrGo()" placeholder="Search records" />
   <span class="input-group-btn">
     <a class="btn btn-default fa fa-search" (click)="searchOrGo()"></a>
   </span>
 </div>
-<div *ngIf="resultCount >= 0" class="navbar-form col-md-5 inline">
+<div *ngIf="resultCount >= 0" class="navbar-form inline">
   <ng-container [ngSwitch]="resultCount">
     <ng-container *ngSwitchCase="0">
       <span class="result-text form-control-static">No results</span>
