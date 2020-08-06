@@ -20,18 +20,18 @@ jobs:
         with:
           node-version: 6.9.1
 
-      - name: lint
-        run: npm run lint
-
-      - name: write version
-        run: node ./write-version.js
-
       - name: install
         run: |
           npm install buffer-shims
           export CHROME_BIN=chromium-browser
           export DISPLAY=:99.0
           npm install
+
+      - name: lint
+        run: npm run lint
+
+      - name: write version
+        run: node ./write-version.js
 
       - name: build
         run: npm run build
