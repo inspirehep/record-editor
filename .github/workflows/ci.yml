@@ -43,6 +43,3 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: inspirehep/editor
           tag_with_ref: true
-
-      - name: coverage
-        run: npm run coveralls
