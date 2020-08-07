@@ -43,3 +43,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: inspirehep/editor
           tag_with_ref: true
+        if: ${{ github.event_name == 'push' && github.event.ref == 'master' }}
