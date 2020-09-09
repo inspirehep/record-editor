@@ -1,6 +1,6 @@
 {
   "name": "record-editor",
-  "version": "0.13.32",
+  "version": "0.13.33",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -3782,6 +3782,17 @@
       "integrity": "sha1-FQStJSMVjKpA20onh8sBQRmU6k8=",
       "dev": true
     },
+    "fsevents": {
+      "version": "1.2.13",
+      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-1.2.13.tgz",
+      "integrity": "sha512-oWb1Z6mkHIskLzEJ/XWX0srkpkTQ7vaopMQkyaEIoq0fmtFVxOthb8cCxeT+p3ynTdkk/RZwbgG4brR5BeWECw==",
+      "dev": true,
+      "optional": true,
+      "requires": {
+        "bindings": "^1.5.0",
+        "nan": "^2.12.1"
+      }
+    },
     "fstream": {
       "version": "1.0.12",
       "resolved": "https://registry.npmjs.org/fstream/-/fstream-1.0.12.tgz",
@@ -6140,9 +6151,9 @@
       "dev": true
     },
     "ng2-json-editor": {
-      "version": "0.25.18",
-      "resolved": "https://registry.npmjs.org/ng2-json-editor/-/ng2-json-editor-0.25.18.tgz",
-      "integrity": "sha512-hoLKnc0x7mj6eHbEDhSknbHNpX//FQ2BrNdEjCe9MQqbDwZnrzoZcXAXkwmLlJAG5J/TbwBoUznREVLXg8CZIA==",
+      "version": "0.25.19",
+      "resolved": "https://registry.npmjs.org/ng2-json-editor/-/ng2-json-editor-0.25.19.tgz",
+      "integrity": "sha512-gWA/ffEpx9cXYGHzsee7U7DR+SnzVp7xLg6160gBoz+oHKuFfcSB3cgGpsknn1WifOqbuOD3RkMpDVwbfe4pPA==",
       "requires": {
         "ajv": "^5.0.0",
         "ajv-errors": "^1.0.0",
@@ -7165,7 +7176,8 @@
       "version": "2.2.2",
       "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-2.2.2.tgz",
       "integrity": "sha512-q0M/9eZHzmr0AulXyPwNfZjtwZ/RBZlbN3K3CErVrk50T2ASYI7Bye0EvekFY3IP1Nt2DHu0re+V2ZHIpMkuWg==",
-      "dev": true
+      "dev": true,
+      "optional": true
     },
     "pify": {
       "version": "3.0.0",
@@ -11033,6 +11045,13 @@
             "to-regex-range": "^5.0.1"
           }
         },
+        "fsevents": {
+          "version": "2.1.3",
+          "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.1.3.tgz",
+          "integrity": "sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==",
+          "dev": true,
+          "optional": true
+        },
         "glob-parent": {
           "version": "5.1.1",
           "resolved": "https://registry.npmjs.org/glob-parent/-/glob-parent-5.1.1.tgz",
@@ -11057,13 +11076,15 @@
           "version": "2.1.1",
           "resolved": "https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz",
           "integrity": "sha1-qIwCU1eR8C7TfHahueqXc8gz+MI=",
-          "dev": true
+          "dev": true,
+          "optional": true
         },
         "is-glob": {
           "version": "4.0.1",
           "resolved": "https://registry.npmjs.org/is-glob/-/is-glob-4.0.1.tgz",
           "integrity": "sha512-5G0tKtBTFImOqDnLB2hG6Bp2qcKEFduo4tZu9MT/H6NQv/ghhy30o55ufafxJ/LdH79LLs2Kfrn85TLKyA7BUg==",
           "dev": true,
+          "optional": true,
           "requires": {
             "is-extglob": "^2.1.1"
           }
@@ -11079,7 +11100,8 @@
           "version": "3.0.0",
           "resolved": "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz",
           "integrity": "sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==",
-          "dev": true
+          "dev": true,
+          "optional": true
         },
         "readdirp": {
           "version": "3.4.0",
